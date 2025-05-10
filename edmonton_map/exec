@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Get the container name from docker-compose.yaml
+CONTAINER_NAME="edmonton_map"
+
+# Check if a container name was found
+if [ -z "$CONTAINER_NAME" ]; then
+  echo "Error: Could not find the 'app' container. Ensure docker-compose is running."
+  exit 1
+fi
+
+# If no arguments are provided, execute a shell in the container
+if [ $# -eq 0 ]; then
+  docker exec -it $CONTAINER_NAME /bin/bash
+else
+  # If arguments are provided, execute them as a management command
+  if [ "$1" = "manage" ]; then
+    shift
+    docker exec -it $CONTAINER_NAME python manage.py "$@"
+  else
+    echo "Usage: ./exec (for shell) or ./exec manage <command> [options]"
+    exit 1
+  fi
+fi
