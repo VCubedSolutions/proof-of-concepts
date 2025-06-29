@@ -51,7 +51,6 @@
 
             const fiber = (await (await fetch('https://regionaldashboard.alberta.ca/scripts/fibre_area_s.js')).json());
             const {features, type} = fiber;
-            // console.log();
             const [bad, ok, good] = features;
 
             const rails = (await fetch('https://regionaldashboard.alberta.ca/scripts/rail_tracks.js')).json();
