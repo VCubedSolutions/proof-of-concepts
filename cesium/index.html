@@ -26,28 +26,38 @@
     <script>
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwZWZmNzNkNy01YmUzLTQ4YjgtOWJhZi05NDZhZmY3ZTlkY2UiLCJpZCI6MzAxMzUxLCJpYXQiOjE3NDk5NjUzMzh9.GkpUJoqxZ2vucGMCqKASf0Rcsa_XQsFZ6DD8HHIp6j4';
 
+        // // OSM TILES
+        // const viewer = new Cesium.Viewer("cesiumContainer", {
+        //     terrainProvider: Cesium.Terrain.fromWorldTerrain(),
+        //     timeline: false,
+        //     animation: false
+        // });
+
         const viewer = new Cesium.Viewer("cesiumContainer", {
-            terrainProvider: Cesium.Terrain.fromWorldTerrain(),
+            globe: false,
             timeline: false,
-            animation: false
+            // geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
         });
 
         let airportsLayer, railsLayer;
 
         async function init() {
-            const osmBuildingsTileset = await Cesium.createOsmBuildingsAsync();
-            viewer.scene.primitives.add(osmBuildingsTileset);
-            viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
-            const imageryLayer = viewer.imageryLayers.get(0);
-            imageryLayer.brightness = 0.5;
+            // const tileset = await Cesium.createOsmBuildingsAsync();
+            const tileset = await Cesium.createGooglePhotorealistic3DTileset();
 
-            //viewer.imageryLayers.removeAll();
-            viewer.scene.globe.baseColor = Cesium.Color.RED;
+            viewer.scene.primitives.add(tileset);
 
-            viewer.scene.backgroundColor = Cesium.Color.BLACK;
-            viewer.scene.skyAtmosphere.show = false;
-            viewer.scene.fog.enabled = false;
-            viewer.scene.globe.showGroundAtmosphere = false;
+            // // BELOW IS FOR OSM TILES
+            // viewer.scene.setTerrain(Cesium.Terrain.fromWorldTerrain());
+            // const imageryLayer = viewer.imageryLayers.get(0);
+            // imageryLayer.brightness = 0.5;
+
+            // viewer.scene.globe.baseColor = Cesium.Color.RED;
+
+            // viewer.scene.backgroundColor = Cesium.Color.BLACK;
+            // viewer.scene.skyAtmosphere.show = false;
+            // viewer.scene.fog.enabled = false;
+            // viewer.scene.globe.showGroundAtmosphere = false;
 
             const fiber = (await (await fetch('https://regionaldashboard.alberta.ca/scripts/fibre_area_s.js')).json());
             const {features, type} = fiber;
