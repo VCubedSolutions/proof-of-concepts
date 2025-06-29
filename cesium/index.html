@@ -54,34 +54,10 @@
             const [bad, ok, good] = features;
 
             const rails = (await fetch('https://regionaldashboard.alberta.ca/scripts/rail_tracks.js')).json();
-
             const airports = (await fetch('https://regionaldashboard.alberta.ca/scripts/airports.js')).json();
-
             const transmissionLines = (await fetch('https://regionaldashboard.alberta.ca/scripts/transmission_lines.js')).json();
-
             const highways = (await fetch('https://regionaldashboard.alberta.ca/scripts/l1_roads.js')).json();
             const albertaOutline = (await fetch('./alberta_outline.json')).json();
-
-            const geoJsonData = {
-                "type": "FeatureCollection",
-                "features": [
-                    {
-                        "type": "Feature",
-                        "properties": {
-                            "name": "hEEHE",
-                            "description": "This is a test description for the point.",
-                            "testField": "test value"
-                        },
-                        "geometry": {
-                            "coordinates": [
-                                -113.52518756872853,
-                                53.52849345148286
-                            ],
-                            "type": "Point"
-                        }
-                    }
-                ]
-            }
 
             Cesium.GeoJsonDataSource.load(rails, {
                 clampToGround: true,
