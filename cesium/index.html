@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Cesium - Edmonton View</title>
-    <script src="https://cesium.com/downloads/cesiumjs/releases/1.120/Build/Cesium/Cesium.js"></script>
-    <link href="https://cesium.com/downloads/cesiumjs/releases/1.120/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.130/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.130/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
     <style>
         html,
         body,
@@ -26,6 +26,44 @@
     <label for="toggleMunicipalBoundaries">Toggle Municipal Boundaries</label>
     <div id="cesiumContainer"></div>
     <script>
+        const LARGE_SIZE = 70;
+        const MEDIUM_SIZE = 50;
+        const pin_builder = new Cesium.PinBuilder();
+
+        function loadGeoJSONPin(data, icon, size, custom = false) {
+            properties = {
+                clampToGround: true,
+                markerSize: size
+            };
+
+            if (!custom) {
+                properties.markerSymbol = icon;
+            }
+
+            Cesium.GeoJsonDataSource.load(data, properties).then(async function (data_source) {
+                viewer.dataSources.add(data_source);
+                if (!custom) {
+                    return;
+                }
+
+                const entities = data_source.entities.values;
+                for (let i = 0; i < entities.length; i++) {
+                    const entity = entities[i];
+                    if (!entity.billboard) {
+                        continue;
+                    }
+
+                    const customPinCanvas = await pin_builder.fromUrl(icon, Cesium.Color.ROYALBLUE, 48);
+                    entity.billboard.image = customPinCanvas.toDataURL();
+
+                    // entity.billboard.image = icon;
+                    entity.billboard.width = size; // Set desired width
+                    entity.billboard.height = size; // Set desired height
+                    entity.billboard.verticalOrigin = Cesium.VerticalOrigin.BOTTOM; // Adjust origin if needed
+                }
+            });
+        };
+
         Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIwZWZmNzNkNy01YmUzLTQ4YjgtOWJhZi05NDZhZmY3ZTlkY2UiLCJpZCI6MzAxMzUxLCJpYXQiOjE3NDk5NjUzMzh9.GkpUJoqxZ2vucGMCqKASf0Rcsa_XQsFZ6DD8HHIp6j4';
 
         // // OSM TILES
@@ -66,11 +104,16 @@
             const [bad, ok, good] = features;
 
             const rails = (await fetch('https://regionaldashboard.alberta.ca/scripts/rail_tracks.js')).json();
+            const rail_terminals = (await fetch('https://regionaldashboard.alberta.ca/scripts/rail_terminals.js')).json();
+
             const airports = (await fetch('https://regionaldashboard.alberta.ca/scripts/airports.js')).json();
-            const transmissionLines = (await fetch('https://regionaldashboard.alberta.ca/scripts/transmission_lines.js')).json();
+
+            const transmission_lines = (await fetch('https://regionaldashboard.alberta.ca/scripts/transmission_lines.js')).json();
+            const substations = (await fetch('https://regionaldashboard.alberta.ca/scripts/substations.js')).json();
+
             const highways = (await fetch('https://regionaldashboard.alberta.ca/scripts/l1_roads.js')).json();
-            const albertaOutline = (await fetch('./alberta_outline.json')).json();
             const municipal_boundaries = (await fetch('./municipal_boundaries.json')).json();
+            const alberta_outline = (await fetch('./alberta_outline.json')).json();
 
             Cesium.GeoJsonDataSource.load(rails, {
                 clampToGround: true,
@@ -94,7 +137,7 @@
                 }
             });
 
-            Cesium.GeoJsonDataSource.load(transmissionLines, {
+            Cesium.GeoJsonDataSource.load(transmission_lines, {
                 clampToGround: true,
                 stroke: Cesium.Color.fromCssColorString('#d78e12'),
                 strokeWidth: 10,
@@ -138,14 +181,51 @@
                 }
             });
 
+            // Cesium.GeoJsonDataSource.load(rail_terminals, {
+            //     clampToGround: true,
+            //     markerSymbol: 'rail',
+            //     markerSize: RAIL_MARKER_SIZE
+            // }).then(function (dataSource) {
+            //     viewer.dataSources.add(dataSource);
+            // });
+
+            loadGeoJSONPin(rail_terminals, 'rail', MEDIUM_SIZE, false);
+            loadGeoJSONPin(substations, './bolt.svg', MEDIUM_SIZE, true);
+
+
             Cesium.GeoJsonDataSource.load(airports, {
                 clampToGround: true,
-                markerSymbol: 'airfield'
+                markerSymbol: 'airfield',
+                markerSize: LARGE_SIZE // default is 48
             }).then(function (dataSource) {
                 viewer.dataSources.add(dataSource);
+
+                const entities = dataSource.entities.values;
+                for (let i = 0; i < entities.length; i++) {
+                    const entity = entities[i];
+                    // if (Cesium.defined(entity.billboard)) {
+                    //     entity.billboard.color = Cesium.Color.fromCssColorString('#ff008a');
+                    // }
+
+                    if (entity.name !== 'Edmonton International Airport' || !entity.billboard) {
+                        continue;
+                    }
+
+                    console.log(entity.name);
+
+                    // Get the custom image URL from the GeoJSON properties
+                    // const customImageUrl = entity.properties.image;
+
+                    entity.billboard.image = "./YEG logo.png"; // .getValue() if it's a Property
+                    entity.billboard.width = LARGE_SIZE; // Set desired width
+                    entity.billboard.height = LARGE_SIZE; // Set desired height
+                    entity.billboard.verticalOrigin = Cesium.VerticalOrigin.BOTTOM; // Adjust origin if needed
+                }
+
+
             });
 
-            const albertaOutlineTemp = await Cesium.GeoJsonDataSource.load(albertaOutline, {
+            const albertaOutlineTemp = await Cesium.GeoJsonDataSource.load(alberta_outline, {
                 clampToGround: true,
             });
             viewer.dataSources.add(albertaOutlineTemp);
