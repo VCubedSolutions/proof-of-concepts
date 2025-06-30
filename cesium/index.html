@@ -30,6 +30,55 @@
         const MEDIUM_SIZE = 50;
         const pin_builder = new Cesium.PinBuilder();
 
+        // from https://community.cesium.com/t/the-most-efficient-way-to-draw-curved-polyline-from-two-point-datasets/27055
+        function createArc(start_lat, start_lon, stop_lat, stop_lon) {
+            var referenceTime = Cesium.JulianDate.fromIso8601('2001-01-01T00:00:00Z');
+            var midTime = Cesium.JulianDate.addSeconds(referenceTime, 43200, new Cesium.JulianDate());
+            var stopTime = Cesium.JulianDate.addSeconds(referenceTime, 86400, new Cesium.JulianDate());
+
+            // Create a straight-line path.
+            var property = new Cesium.SampledPositionProperty();
+            var startPosition = Cesium.Cartesian3.fromDegrees(start_lon, start_lat, 0.2);
+            property.addSample(referenceTime, startPosition);
+            var stopPosition = Cesium.Cartesian3.fromDegrees(stop_lon, stop_lat, 0.2);
+            property.addSample(stopTime, stopPosition);
+
+            // Find the midpoint of the straight path, and move it.
+            var spreadAmount = 1
+            var midPoint = Cesium.Cartographic.fromCartesian(property.getValue(midTime));
+            midPoint.longitude += Cesium.Math.toRadians(spreadAmount);
+
+            midPoint.height = 400000;
+            var midPosition = viewer.scene.globe.ellipsoid.cartographicToCartesian(
+                midPoint, new Cesium.Cartesian3());
+
+            // Redo the path to be the new arc.
+            property = new Cesium.SampledPositionProperty();
+            property.addSample(referenceTime, startPosition);
+            property.addSample(midTime, midPosition);
+            property.addSample(stopTime, stopPosition);
+
+            // Create an Entity to show the arc.
+            var arcEntity = viewer.entities.add({
+                position: property,
+                // This path shows the arc as a polyline.
+                path: {
+                    resolution: 1200,
+                    material: new Cesium.PolylineArrowMaterialProperty(Cesium.Color.fromRandom({alpha: 1.0})),
+                    //material : Cesium.Color.fromRandom({ alpha : 1.0 }),
+                    width: 10,
+                    leadTime: 1e11,
+                    trailTime: 1e11
+                }
+            });
+
+            // This is where it becomes a smooth path.
+            arcEntity.position.setInterpolationOptions({
+                interpolationDegree: 5,
+                interpolationAlgorithm: Cesium.LagrangePolynomialApproximation
+            });
+        }
+
         function loadGeoJSONPin(data, icon, size, custom = false) {
             properties = {
                 clampToGround: true,
@@ -74,7 +123,7 @@
         // });
 
         const viewer = new Cesium.Viewer("cesiumContainer", {
-            globe: false,
+            // globe: false,
             timeline: false,
             // geocoder: Cesium.IonGeocodeProviderType.GOOGLE,
         });
@@ -192,6 +241,7 @@
             loadGeoJSONPin(rail_terminals, 'rail', MEDIUM_SIZE, false);
             loadGeoJSONPin(substations, './bolt.svg', MEDIUM_SIZE, true);
 
+            createArc(53.546600, -113.497792, 53.528196, -113.525736);
 
             Cesium.GeoJsonDataSource.load(airports, {
                 clampToGround: true,
