@@ -114,6 +114,7 @@
             const highways = (await fetch('https://regionaldashboard.alberta.ca/scripts/l1_roads.js')).json();
             const municipal_boundaries = (await fetch('./municipal_boundaries.json')).json();
             const alberta_outline = (await fetch('./alberta_outline.json')).json();
+            const municipal_boundaries = (await fetch('./municipal_boundaries.json')).json();
 
             Cesium.GeoJsonDataSource.load(rails, {
                 clampToGround: true,
