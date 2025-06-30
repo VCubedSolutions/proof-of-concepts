@@ -110,10 +110,11 @@
 
             const transmission_lines = (await fetch('https://regionaldashboard.alberta.ca/scripts/transmission_lines.js')).json();
             const substations = (await fetch('https://regionaldashboard.alberta.ca/scripts/substations.js')).json();
-
             const highways = (await fetch('https://regionaldashboard.alberta.ca/scripts/l1_roads.js')).json();
+
             const municipal_boundaries = (await fetch('./municipal_boundaries.json')).json();
             const alberta_outline = (await fetch('./alberta_outline.json')).json();
+            const eg_office = (await fetch('./edmonton_global.geojson')).json();
 
             Cesium.GeoJsonDataSource.load(rails, {
                 clampToGround: true,
@@ -221,8 +222,22 @@
                     entity.billboard.height = LARGE_SIZE; // Set desired height
                     entity.billboard.verticalOrigin = Cesium.VerticalOrigin.BOTTOM; // Adjust origin if needed
                 }
+            });
 
+            Cesium.GeoJsonDataSource.load(eg_office, {
+                clampToGround: true
+            }).then(function (dataSource) {
+                viewer.dataSources.add(dataSource);
 
+                const entity = dataSource.entities.values[0]; // Only one point
+
+                entity.billboard = new Cesium.BillboardGraphics({
+                    image: "./eg_logo.jpg",
+                    width: LARGE_SIZE,
+                    height: LARGE_SIZE,
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                });
             });
 
             const albertaOutlineTemp = await Cesium.GeoJsonDataSource.load(alberta_outline, {
