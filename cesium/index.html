@@ -22,6 +22,8 @@
 <body>
     <input type="checkbox" id="toggleAlberta" onclick="toggleAlberta()" checked>
     <label for="toggleAlberta">Toggle Alberta Outline</label>
+    <input type="checkbox" id="toggleMunicipalBoundaries" onclick="toggleMunicipalBoundaries()" checked>
+    <label for="toggleMunicipalBoundaries">Toggle Municipal Boundaries</label>
     <div id="cesiumContainer"></div>
     <script>
         const LARGE_SIZE = 70;
@@ -110,6 +112,7 @@
             const substations = (await fetch('https://regionaldashboard.alberta.ca/scripts/substations.js')).json();
 
             const highways = (await fetch('https://regionaldashboard.alberta.ca/scripts/l1_roads.js')).json();
+            const municipal_boundaries = (await fetch('./municipal_boundaries.json')).json();
             const alberta_outline = (await fetch('./alberta_outline.json')).json();
 
             Cesium.GeoJsonDataSource.load(rails, {
@@ -227,6 +230,29 @@
             });
             viewer.dataSources.add(albertaOutlineTemp);
 
+            const municipal_boundaries_ds = new Cesium.GeoJsonDataSource('municipal_boundaries');
+            await municipal_boundaries_ds.load(municipal_boundaries, {clampToGround: true});
+            viewer.dataSources.add(municipal_boundaries_ds);
+
+            // Assign random color to each municipality
+            const munipality_features = municipal_boundaries_ds.entities.values;
+            for (let i = 0; i < munipality_features.length; i++) {
+                const entity = munipality_features[i];
+
+                // Generate a random pastel color
+                const color = Cesium.Color.fromRandom({
+                    alpha: 0.6,
+                    minimumRed: 0.4,
+                    minimumGreen: 0.4,
+                    minimumBlue: 0.4
+                });
+
+                if (Cesium.defined(entity.polygon)) {
+                    entity.polygon.material = color;
+                }
+            }
+
+
 
             viewer.scene.camera.flyTo({
                 destination: Cesium.Cartesian3.fromDegrees(-113.4909, 53.5444, 750), // Edmonton
@@ -236,16 +262,22 @@
                 },
                 duration: 0
             });
-            return albertaOutlineTemp;
+            return {'alberta_outline': albertaOutlineTemp, 'municipal_boundaries': municipal_boundaries_ds};
         }
 
 
         const result = init();
         const toggleAlberta = () => {
             result.then((dataSource) => {
-                dataSource.show = !dataSource.show;
+                console.log(dataSource);
+                dataSource.alberta_outline.show = !dataSource.alberta_outline.show;
             });
+        }
 
+        const toggleMunicipalBoundaries = () => {
+            result.then((dataSource) => {
+                dataSource.municipal_boundaries.show = !dataSource.municipal_boundaries.show;
+            });
         }
     </script>
 
