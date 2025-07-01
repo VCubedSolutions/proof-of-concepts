@@ -256,7 +256,7 @@
             Cesium.GeoJsonDataSource.load(airports, {
                 clampToGround: true,
                 markerSymbol: 'airfield',
-                markerSize: LARGE_SIZE // default is 48
+                // markerSize: LARGE_SIZE // default is 48
             }).then(function (dataSource) {
                 viewer.dataSources.add(dataSource);
 
@@ -271,15 +271,10 @@
                         continue;
                     }
 
-                    console.log(entity.name);
-
-                    // Get the custom image URL from the GeoJSON properties
-                    // const customImageUrl = entity.properties.image;
-
-                    entity.billboard.image = "./YEG logo.png"; // .getValue() if it's a Property
-                    entity.billboard.width = LARGE_SIZE; // Set desired width
-                    entity.billboard.height = LARGE_SIZE; // Set desired height
-                    entity.billboard.verticalOrigin = Cesium.VerticalOrigin.BOTTOM; // Adjust origin if needed
+                    entity.billboard.image = "./YEG logo.png";
+                    entity.billboard.scale = 0.15; // Start with a default scale
+                    entity.billboard.scaleByDistance = new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5);
+                    entity.billboard.translucencyByDistance = new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5);
                 }
             });
 
@@ -291,11 +286,14 @@
                 const entity = dataSource.entities.values[0]; // Only one point
 
                 entity.billboard = new Cesium.BillboardGraphics({
-                    image: "./eg_logo.jpg",
-                    width: LARGE_SIZE,
-                    height: LARGE_SIZE,
+                    image: "./eg_logo.png",
+                    // width: 200,
+                    // height: 80,
                     verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
-                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                    heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                    scale: 0.15, // Start with a default scale
+                    scaleByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
+                    translucencyByDistance: new Cesium.NearFarScalar(1.5e2, 2.0, 1.5e7, 0.5),
                 });
             });
 
