@@ -37,7 +37,7 @@
         const pin_builder = new Cesium.PinBuilder();
 
         // from https://community.cesium.com/t/the-most-efficient-way-to-draw-curved-polyline-from-two-point-datasets/27055
-        function createArc(start_lat, start_lon, stop_lat, stop_lon) {
+        function createArc(start_lat, start_lon, stop_lat, stop_lon, height) {
             var referenceTime = Cesium.JulianDate.fromIso8601('2001-01-01T00:00:00Z');
             var midTime = Cesium.JulianDate.addSeconds(referenceTime, 43200, new Cesium.JulianDate());
             var stopTime = Cesium.JulianDate.addSeconds(referenceTime, 86400, new Cesium.JulianDate());
@@ -50,11 +50,9 @@
             property.addSample(stopTime, stopPosition);
 
             // Find the midpoint of the straight path, and move it.
-            var spreadAmount = 1
             var midPoint = Cesium.Cartographic.fromCartesian(property.getValue(midTime));
-            midPoint.longitude += Cesium.Math.toRadians(spreadAmount);
-
-            midPoint.height = 400000;
+        
+            midPoint.height = height;
             var midPosition = viewer.scene.globe.ellipsoid.cartographicToCartesian(
                 midPoint, new Cesium.Cartesian3());
 
@@ -251,7 +249,7 @@
             loadGeoJSONPin(rail_terminals, 'rail', MEDIUM_SIZE, false);
             const substationsLayer = await loadGeoJSONPin(substations, './bolt.svg', MEDIUM_SIZE, true);
 
-            createArc(53.546600, -113.497792, 53.528196, -113.525736);
+            createArc(53.546600, -113.497792, 53.528196, -113.525736, 1500);
 
             Cesium.GeoJsonDataSource.load(airports, {
                 clampToGround: true,
